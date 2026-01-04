@@ -13,7 +13,6 @@ interface PeopleTableProps extends PeopleListType {
 
 export const PeopleTable = ({
   peoplelist,
-  originalPeoplelist,
   loader,
   errortext,
   onPeople,
@@ -23,8 +22,6 @@ export const PeopleTable = ({
 
   const sortName = searchParams.get('sort');
   const sortOrder = searchParams.get('order');
-
-  const originalList = originalPeoplelist || [];
 
   const handleSortField = (fieldName: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -45,29 +42,35 @@ export const PeopleTable = ({
   };
 
   const sortBy = (nameField: string, order: 'asc' | 'desc' = 'asc') => {
-    try {
-      const sorted = [...originalList].sort((a, b) => {
-        const valueA =
-          (a[nameField as keyof Person] as Person)?.toString().toLowerCase() ||
-          '';
-        const valueB =
-          (b[nameField as keyof Person] as Person)?.toString().toLowerCase() ||
-          '';
-        const compare = valueA.localeCompare(valueB);
+    // Сортуємо peoplelist (поточний, можливо відфільтрований список)
+    const sorted = [...peoplelist].sort((a, b) => {
+      const valueA = a[nameField as keyof Person];
+      const valueB = b[nameField as keyof Person];
 
-        return order === 'asc' ? compare : -compare;
-      });
+      const isNumericA = typeof valueA === 'number';
+      const isNumericB = typeof valueB === 'number';
 
-      onPeople(sorted);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error sorting:', error);
-      onPeople([...originalList]);
-    }
+      let compareResult: number;
+
+      if (isNumericA && isNumericB) {
+        // Числові порівняння
+        compareResult = (valueA as number) - (valueB as number);
+      } else {
+        // Строкові порівняння
+        const strA = String(valueA || '').toLowerCase();
+        const strB = String(valueB || '').toLowerCase();
+
+        compareResult = strA.localeCompare(strB);
+      }
+
+      return order === 'asc' ? compareResult : -compareResult;
+    });
+
+    onPeople(sorted);
   };
 
   useEffect(() => {
-    if (originalList.length === 0) {
+    if (peoplelist.length === 0) {
       return;
     }
 
@@ -76,9 +79,9 @@ export const PeopleTable = ({
 
       sortBy(sortName, order);
     } else {
-      onPeople([...originalList]);
+      onPeople([...peoplelist]);
     }
-  }, [sortName, sortOrder]);
+  }, [sortName, sortOrder, peoplelist]);
 
   const getSortIcon = (fieldName: string) => {
     if (sortName !== fieldName) {

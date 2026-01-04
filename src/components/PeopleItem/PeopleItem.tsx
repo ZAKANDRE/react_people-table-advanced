@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import type { Person } from '../../types';
 import { PersonLink } from '../PersonLink/PersonLink';
-import { useParams } from 'react-router-dom';
 import type { PeopleItemType } from '../../types/PeopleItemType';
 
 export const PeopleItem = ({
@@ -20,17 +19,16 @@ export const PeopleItem = ({
 
   const motherPerson = findPersonByName(person.motherName);
   const fatherPerson = findPersonByName(person.fatherName);
-  const { slug } = useParams();
 
   return (
     <tr
       data-cy="person"
       className={classNames('', {
-        'has-background-warning':
-          warning === person.slug || slug === person.slug,
+        'has-background-warning': warning === person.slug,
       })}
+      onClick={() => onWarning(person.slug)}
     >
-      <td onClick={() => onWarning(person.slug)}>
+      <td>
         <PersonLink person={person} />
       </td>
 

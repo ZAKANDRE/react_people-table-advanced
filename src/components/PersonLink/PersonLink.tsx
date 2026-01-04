@@ -6,8 +6,9 @@ export const PersonLink = ({ person, personName }: PersonLinkProps) => {
 
     return (
       <a
-        href={`#/people/${person.slug}`}
-        className={isFemale ? 'has-text-danger' : ''}
+        href="#"
+        className={isFemale ? 'has-text-danger' : 'has-text-info'}
+        onClick={e => e.preventDefault()}
       >
         {person.name}
       </a>

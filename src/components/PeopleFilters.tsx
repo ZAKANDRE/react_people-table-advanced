@@ -135,19 +135,25 @@ export const PeopleFilters = ({
       <nav className="panel">
         <p className="panel-heading">Filters</p>
         <p className="panel-tabs" data-cy="SexFilter">
-          {SEX_FILTERS.map(item => (
-            <Link
-              key={item.id}
-              to={`/people/?sex=${item.value}`}
-              className={currentSex === item.value ? 'is-active' : ''}
-              onClick={e => {
-                e.preventDefault();
-                handleSexChange(item.value);
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {SEX_FILTERS.map(item => {
+            const searchString = getSearchWith(searchParams, {
+              sex: item.value,
+            });
+
+            return (
+              <Link
+                key={item.id}
+                to={`/people${searchString ? `?${searchString}` : ''}`}
+                className={currentSex === item.value ? 'is-active' : ''}
+                onClick={e => {
+                  e.preventDefault();
+                  handleSexChange(item.value);
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </p>
 
         <div className="panel-block">
