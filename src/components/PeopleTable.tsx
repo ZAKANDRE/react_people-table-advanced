@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { PeopleItem } from './PeopleItem/PeopleItem';
 import type { PeopleListType } from '../types/PeopleListType';
 import { Person } from '../types';
@@ -23,6 +23,7 @@ export const PeopleTable = ({
   const sortName = searchParams.get('sort');
   const sortOrder = searchParams.get('order');
 
+
   const handleSortField = (fieldName: string) => {
     const params = new URLSearchParams(searchParams.toString());
     const currentSort = params.get('sort');
@@ -41,34 +42,35 @@ export const PeopleTable = ({
     setSearchParams(params);
   };
 
-  const sortBy = (nameField: string, order: 'asc' | 'desc' = 'asc') => {
-    // Сортуємо peoplelist (поточний, можливо відфільтрований список)
-    const sorted = [...peoplelist].sort((a, b) => {
-      const valueA = a[nameField as keyof Person];
-      const valueB = b[nameField as keyof Person];
+  const sortBy = useCallback(
+    (nameField: string, order: 'asc' | 'desc' = 'asc') => {
+      const sorted = [...peoplelist].sort((a, b) => {
+        const valueA = a[nameField as keyof Person];
+        const valueB = b[nameField as keyof Person];
 
-      const isNumericA = typeof valueA === 'number';
-      const isNumericB = typeof valueB === 'number';
+        const isNumericA = typeof valueA === 'number';
+        const isNumericB = typeof valueB === 'number';
 
-      let compareResult: number;
+        let compareResult: number;
 
-      if (isNumericA && isNumericB) {
-        // Числові порівняння
-        compareResult = (valueA as number) - (valueB as number);
-      } else {
-        // Строкові порівняння
-        const strA = String(valueA || '').toLowerCase();
-        const strB = String(valueB || '').toLowerCase();
+        if (isNumericA && isNumericB) {
+          compareResult = (valueA as number) - (valueB as number);
+        } else {
+          const strA = String(valueA || '').toLowerCase();
+          const strB = String(valueB || '').toLowerCase();
 
-        compareResult = strA.localeCompare(strB);
-      }
+          compareResult = strA.localeCompare(strB);
+        }
 
-      return order === 'asc' ? compareResult : -compareResult;
-    });
+        return order === 'asc' ? compareResult : -compareResult;
+      });
 
-    onPeople(sorted);
-  };
+      onPeople(sorted);
+    },
+    [peoplelist, onPeople],
+  );
 
+  // ✅ Застосування сортування при зміні URL параметрів
   useEffect(() => {
     if (peoplelist.length === 0) {
       return;
@@ -78,10 +80,10 @@ export const PeopleTable = ({
       const order = (sortOrder as 'asc' | 'desc') || 'asc';
 
       sortBy(sortName, order);
-    } else {
-      onPeople([...peoplelist]);
     }
-  }, [sortName, sortOrder, peoplelist]);
+    // ✅ НЕ викликаємо onPeople коли сортування видалено!
+    // Фільтри вже вирішили що показувати
+  }, [sortName, sortOrder, sortBy]);
 
   const getSortIcon = (fieldName: string) => {
     if (sortName !== fieldName) {

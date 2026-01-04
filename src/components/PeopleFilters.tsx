@@ -30,16 +30,7 @@ export const PeopleFilters = ({
   const [info, setInfo] = useState<boolean>(false);
   const [originalList, setOriginalList] = useState(peopleList);
   const [query, setQuery] = useState<string>('');
-
-  useEffect(() => {
-    setOriginalList(peopleList);
-  }, [peopleList]);
-
-  useEffect(() => {
-    const queryFromUrl = searchParams.get('query') || '';
-
-    setQuery(queryFromUrl);
-  }, []);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const getCentury = (birthYear: number): string => {
     return Math.ceil(birthYear / 100).toString();
@@ -83,6 +74,25 @@ export const PeopleFilters = ({
       onError?.('');
     }
   };
+
+  useEffect(() => {
+    setOriginalList(peopleList);
+  }, [peopleList]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      return;
+    }
+
+    const queryFromUrl = searchParams.get('query') || '';
+    const sexFromUrl = searchParams.get('sex');
+    const centuriesFromUrl = searchParams.getAll('centuries');
+
+    setQuery(queryFromUrl);
+
+    applyAllFilters(queryFromUrl, sexFromUrl, centuriesFromUrl);
+    setIsInitialized(true);
+  }, []);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-
 import { PeopleFilters } from './PeopleFilters';
-
 import { PeopleTable } from './PeopleTable';
 import { Person } from '../types';
 import { getPeople } from '../api';
+import { useLocation } from 'react-router-dom';
 import { Loader } from './Loader';
 
 export const PeoplePage = () => {
@@ -13,16 +12,22 @@ export const PeoplePage = () => {
   const [errorLoad, setErrorLoad] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
+  const { pathname, search } = useLocation();
+
   useEffect(() => {
     setLoading(true);
+    setErrorLoad('');
+
     getPeople()
       .then(data => {
         setPeople(data);
         setOriginalPeople(data);
+        setErrorLoad('');
       })
-      .catch(error => {
+      .catch(() => {
         setErrorLoad('Something went wrong');
-        throw error;
+        setPeople([]);
+        setOriginalPeople([]);
       })
       .finally(() => {
         setLoading(false);
@@ -32,9 +37,9 @@ export const PeoplePage = () => {
   return (
     <>
       <h1 className="title">People Page</h1>
-      {/* {pathname}
+      {pathname}
       <br />
-      {search} */}
+      {search}
 
       {errorLoad && (
         <div className="notification is-danger" data-cy="peopleLoadingError">
@@ -68,6 +73,7 @@ export const PeoplePage = () => {
 
               <PeopleTable
                 peoplelist={people}
+                originalPeoplelist={originalPeople}
                 loader={loading}
                 onPeople={setPeople}
                 errortext={errorLoad}
